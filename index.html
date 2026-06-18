@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Turvex — Demo Módulo Grupos</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F3F4F6;color:#111827;height:100vh;overflow:hidden}
+button{cursor:pointer;font-family:inherit}
+input,textarea{font-family:inherit}
+input:focus,textarea:focus{outline:2px solid #4F46E5;outline-offset:1px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px}
+.fade{animation:fd .18s ease}
+@keyframes fd{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh}
+#sidebar{width:220px;background:#0f1f3d;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#demo-bar{background:#1E3A5F;color:#fff;padding:7px 20px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12;flex-shrink:0}
+#demo-bar button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600}
+#content{flex:1;overflow-y:auto}
+/* ── SIDEBAR ── */
+.sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo-name{color:#fff;font-weight:900;font-size:19px;letter-spacing:2px}
+.sb-logo-tag{color:rgba(255,255,255,.35);font-size:10px;margin-top:1px}
+.sb-nav{padding:6px 0;flex:1;overflow-y:auto}
+.sb-section{padding:9px 16px 3px;color:rgba(255,255,255,.3);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.sb-item{width:100%;display:flex;align-items:center;gap:9px;padding:8px 16px;background:none;border:none;color:rgba(255,255,255,.55);font-size:13px;font-weight:400;text-align:left;position:relative;transition:background .12s}
+.sb-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.8)}
+.sb-item.active{background:rgba(255,255,255,.12);color:#fff;font-weight:600}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#6366f1;border-radius:0 2px 2px 0}
+.sb-badge{background:#EF4444;color:#fff;font-size:10px;font-weight:700;border-radius:20px;padding:1px 6px;min-width:18px;text-align:center}
+.sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:8px}
+.sb-foot-name{color:#fff;font-size:12px;font-weight:600}
+.sb-foot-role{color:rgba(255,255,255,.35);font-size:10px}
+/* ── NOTIF BANNER ── */
+.notif-banner{margin:14px 28px 0;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12;flex-wrap:wrap}
+.notif-banner .nb-text{flex:1;min-width:180px}
+.notif-banner .nb-title{font-size:14px;font-weight:700;color:#111827}
+.notif-banner .nb-sub{font-size:12px;color:#6B7280;margin-top:2px}
+/* ── VIEWS ── */
+.view{padding:28px 32px;max-width:880px}
+.page-title{font-size:23px;font-weight:700;color:#111827}
+.page-sub{font-size:14px;color:#6B7280;margin-top:4px}
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search-box{display:flex;align-items:center;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:7px 11px;gap:7px;flex:1;max-width:320px}
+.search-box input{flex:1;border:none;background:none;outline:none;font-size:13px;color:#111827}
+.count{font-size:13px;color:#9CA3AF;flex-shrink:0}
+/* ── BUTTONS ── */
+.btn-primary{background:#1E3A5F;color:#fff;border:none;border-radius:8px;padding:9px 17px;font-size:13px;font-weight:700}
+.btn-secondary{background:#F3F4F6;color:#374151;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600}
+.btn-danger{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600}
+.btn-ghost{background:none;border:none;color:#4F46E5;font-size:12px;font-weight:600;padding:0}
+.btn-outline{background:none;border:1px solid #E5E7EB;border-radius:6px;padding:5px 10px;font-size:12px;color:#374151}
+/* ── CARDS GRID ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:13px}
+/* ── GROUP CARD ── */
+.group-card{background:#fff;border-radius:12px;box-shadow:0 1px 5px rgba(0,0,0,.08);padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:box-shadow .15s}
+.group-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.gc-head{display:flex;align-items:center;gap:11px}
+.gc-info{flex:1;min-width:0}
+.gc-name{font-weight:700;font-size:14px;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc-count{font-size:12px;color:#6B7280}
+.gc-desc{font-size:13px;color:#6B7280;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
+.gc-vis{font-size:12px;color:#9CA3AF}
+/* ── AVATAR ── */
+.av{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;letter-spacing:.4px}
+/* ── BADGE ── */
+.badge{font-size:11px;font-weight:600;border-radius:20px;padding:2px 9px;letter-spacing:.3px;white-space:nowrap}
+/* ── MEMBER CARD ── */
+.member-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:13px 15px;display:flex;align-items:center;gap:11px}
+.mc-av-wrap{position:relative;flex-shrink:0}
+.mc-dot{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid #fff}
+.mc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mc-name{font-weight:600;font-size:14px;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-city{font-size:12px;color:#6B7280}
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid #E5E7EB;margin-bottom:18px;gap:2px}
+.tab-btn{padding:9px 17px;background:none;border:none;font-size:13px;color:#6B7280;font-weight:500;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
+.tab-btn.active{color:#1E3A5F;font-weight:700;border-bottom:2px solid #1E3A5F}
+/* ── FILTER TABS ── */
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.ftab{padding:5px 12px;background:#F3F4F6;border:none;border-radius:20px;font-size:12px;font-weight:500;color:#374151}
+.ftab.active{background:#1E3A5F;color:#fff}
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal{background:#fff;border-radius:14px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;animation:fd .18s ease}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 13px;border-bottom:1px solid #F3F4F6}
+.modal-head h3{font-size:16px;font-weight:700;color:#111827}
+.modal-head .close{background:none;border:none;font-size:18px;color:#9CA3AF;line-height:1}
+.modal-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px}
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:600;color:#374151}
+.field input,.field textarea,.field select{padding:9px 11px;border:1px solid #D1D5DB;border-radius:8px;font-size:14px;color:#111827;background:#F9FAFB;width:100%}
+.field .hint{font-size:12px;color:#9CA3AF}
+/* ── INV ROW ── */
+.inv-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:#F9FAFB;border-radius:8px;margin-bottom:7px;gap:12px}
+.inv-target{font-size:14px;font-weight:600;color:#111827}
+.inv-meta{font-size:12px;color:#6B7280;margin-top:2px}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:#111827;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;display:none;animation:fd .18s ease}
+/* ── ONBOARDING ── */
+.onboarding-wrap{padding:28px 32px;max-width:500px}
+.step-label{font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:4px}
+/* ── GROUP HEADER ── */
+.group-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+.gh-left{display:flex;align-items:flex-start;gap:13px}
+.gh-name{font-size:21px;font-weight:700;color:#111827}
+.gh-meta{font-size:13px;color:#6B7280;margin-top:3px}
+.gh-desc{font-size:13px;color:#6B7280;margin-top:5px;max-width:480px}
+/* ── LANDING ── */
+.landing-wrap{display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:11px;min-height:calc(100vh - 90px)}
+.landing-logo{font-weight:900;font-size:22px;color:#1E3A5F;letter-spacing:2px}
+.landing-card{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:430px;box-shadow:0 4px 20px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:13px;animation:fd .2s ease}
+/* ── SUGGESTION BANNER ── */
+.suggest-banner{display:flex;align-items:center;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;padding:8px 12px;gap:8px;flex-wrap:wrap;margin-top:7px}
+.suggest-banner .sb-text{font-size:13px;color:#374151;flex:1;min-width:140px}
+/* ── DROPDOWN ── */
+.dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid #E5E7EB;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:200;max-height:200px;overflow-y:auto}
+.dd-item{width:100%;display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:none;border:none;text-align:left;border-bottom:1px solid #F9FAFB;font-size:13px}
+.dd-item:hover{background:#F9FAFB}
+.dd-name{font-weight:600;color:#111827}
+.dd-sub{font-size:12px;color:#9CA3AF}
+/* ── PLACEHOLDER ── */
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:#9CA3AF;gap:10px}
+.placeholder .icon{font-size:42px}
+/* ── MODAL TABS ── */
+.modal-tabs{display:flex;border-bottom:1px solid #F3F4F6}
+.mtab{flex:1;padding:9px 0;background:none;border:none;font-size:13px;color:#6B7280;font-weight:500;border-bottom:2px solid transparent}
+.mtab.active{color:#4F46E5;font-weight:700;border-bottom:2px solid #4F46E5}
+.results-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto}
+.result-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#F9FAFB;border-radius:8px}
+.rr-name{font-size:13px;font-weight:600;color:#111827}
+.rr-sub{font-size:12px;color:#6B7280}
+/* ── BACK BUTTON ── */
+.back-btn{background:none;border:none;color:#6B7280;font-size:13px;margin-bottom:14px;padding:0}
+.back-btn:hover{color:#111827}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-name">TURVEX</div>
+      <div class="sb-logo-tag">Conecta. Cotiza. Entrega.</div>
+    </div>
+    <div class="sb-nav" id="sb-nav"></div>
+    <div class="sb-foot">
+      <div class="av" id="sb-avatar" style="width:30px;height:30px;border-radius:50%;font-size:11px"></div>
+      <div>
+        <div class="sb-foot-name">Royalton CHIC PC</div>
+        <div class="sb-foot-role">Administrador</div>
+      </div>
+    </div>
+  </div>
+  <div id="main">
+    <div id="demo-bar">
+      <span>🎮 <strong>Demo interactiva</strong> — Navega con el sidebar o usa los botones de acceso rápido</span>
+      <div style="display:flex;gap:7px">
+        <button onclick="showView('onboarding')">📋 Onboarding (Registro)</button>
+        <button onclick="showView('landing')">📧 Landing Invitación Email</button>
+      </div>
+    </div>
+    <div id="notif-area"></div>
+    <div id="content"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="modal-area"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATOS MOCK
+// ══════════════════════════════════════════
+var state = {
+  activeNav: 'grupos',
+  currentView: 'misGrupos',
+  currentGroup: null,
+  activeTab: 'Miembros',
+  memberFilter: 'Todos',
+  memberSearch: '',
+  showNotif: true,
+  groups: [
+    {id:'g1',name:'Royalton Luxury Resorts',slug:'royalton',desc:'Cadena hotelera con presencia en RD, México, Jamaica y Cancún.',pub:true,count:4,role:'ADMIN'},
+    {id:'g2',name:'Barceló Hotel Group',slug:'barcelo',desc:'Grupo hotelero internacional con hoteles en todo el Caribe.',pub:true,count:7,role:'MEMBER'},
+  ],
+  members: {
+    royalton:[
+      {id:'m1',cid:'c1',name:'Royalton CHIC Punta Cana',city:'Punta Cana, RD',role:'ADMIN',status:'ACTIVA'},
+      {id:'m2',cid:'c2',name:'Hotel Royalton Santo Domingo',city:'Santo Domingo, RD',role:'MEMBER',status:'ACTIVA'},
+      {id:'m3',cid:'c3',name:'Royalton Cancún Resort',city:'Cancún, México',role:'MEMBER',status:'ACTIVA'},
+      {id:'m4',cid:'c4',name:'Royalton Blue Waters',city:'Montego Bay, Jamaica',role:'MEMBER',status:'PENDIENTE'},
+    ],
+    barcelo:[
+      {id:'m5',cid:'c5',name:'Barceló Bávaro Grand',city:'Bávaro, RD',role:'ADMIN',status:'ACTIVA'},
+      {id:'m6',cid:'c6',name:'Barceló Santo Domingo',city:'Santo Domingo, RD',role:'MEMBER',status:'ACTIVA'},
+    ],
+  },
+  invitations: {
+    royalton:[
+      {id:'i1',email:'hotelmx@royalton.com',code:'ROYALTON-7821',status:'PENDIENTE',expires:'2026-07-10',resends:1},
+      {id:'i2',email:'splash@royaltonblu.com',code:'ROYALTON-3304',status:'PENDIENTE',expires:'2026-07-15',resends:0},
+    ],
+    barcelo:[],
+  },
+  myPendingInvitation: {
+    id:'pi1',token:'abc123',groupName:'Marriott International',
+    invitedBy:'Marriott Administración',
+    msg:'Te invitamos a unirte a nuestra red de hoteles en Turvex.',
+    expires: new Date(Date.now()+15*86400000).toISOString()
+  },
+  exploreGroups:[
+    {id:'ge1',name:'Marriott International',slug:'marriott',desc:'Gran cadena con presencia global.',pub:true,count:12,role:null},
+    {id:'ge2',name:'Grupo Hotelero Playa',slug:'playa',desc:'Resorts todo-incluido en el Caribe.',pub:true,count:5,role:null},
+    {id:'ge3',name:'AMResorts Collection',slug:'amresorts',desc:'Colección de resorts premium.',pub:true,count:9,role:null},
+    {id:'ge4',name:'Hard Rock Hotels',slug:'hardrock',desc:null,pub:true,count:6,role:null},
+  ],
+  joinedExplore: new Set(),
+  landingStep: 'view',
+  onboardingGroupSelected: null,
+  onboardingQuery: '',
+  inviteMode: 'search',
+};
+
+// ══════════════════════════════════════════
+// AVATAR HELPER
+// ══════════════════════════════════════════
+var AV_COLORS = ['#4F46E5','#0EA5E9','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6'];
+function avColor(name){ return AV_COLORS[(name||'').charCodeAt(0)%AV_COLORS.length]; }
+function avInitials(name){ return (name||'').split(' ').slice(0,2).map(function(w){return(w[0]||'').toUpperCase();}).join(''); }
+function avHtml(name, size, radius){
+  radius = radius || (size/2)+'px';
+  return '<div class="av" style="width:'+size+'px;height:'+size+'px;border-radius:'+radius+';background:'+avColor(name)+';font-size:'+(size*.36)+'px">'+avInitials(name)+'</div>';
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+var toastTimer;
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function openModal(html){
+  var area = document.getElementById('modal-area');
+  area.innerHTML = '<div class="overlay" onclick="if(event.target===this)closeModal()">'+html+'</div>';
+}
+function closeModal(){
+  document.getElementById('modal-area').innerHTML = '';
+}
+
+// ══════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════
+var NAV = [
+  {section:'RED EMPRESARIAL',items:[{id:'red',icon:'🌐',label:'Red Empresarial'}]},
+  {section:'OPERACIONES',items:[
+    {id:'llegada',icon:'🚗',label:'Llegada'},
+    {id:'salida',icon:'🏁',label:'Salida'},
+  ]},
+  {section:'GESTIÓN',items:[
+    {id:'equipo',icon:'👥',label:'Equipo'},
+    {id:'solicitudes',icon:'📋',label:'Solicitudes'},
+    {id:'cotizaciones',icon:'💰',label:'Cotizaciones'},
+    {id:'grupos',icon:'🏢',label:'Grupos',badge:true},
+  ]},
+  {section:'CONFIGURACIÓN',items:[{id:'config',icon:'⚙️',label:'Configuración'}]},
+];
+
+function renderSidebar(){
+  var html = '';
+  NAV.forEach(function(sec){
+    html += '<div class="sb-section">'+sec.section+'</div>';
+    sec.items.forEach(function(item){
+      var badge = item.badge && state.showNotif ? '<span class="sb-badge">1</span>' : '';
+      html += '<button class="sb-item'+(state.activeNav===item.id?' active':'')+'" onclick="navClick(\''+item.id+'\')">'
+        +'<span>'+item.icon+'</span><span style="flex:1">'+item.label+'</span>'+badge+'</button>';
+    });
+  });
+  document.getElementById('sb-nav').innerHTML = html;
+  var sbAv = document.getElementById('sb-avatar');
+  sbAv.style.background = avColor('Royalton CHIC');
+  sbAv.textContent = avInitials('Royalton CHIC');
+}
+
+function navClick(id){
+  state.activeNav = id;
+  if(id==='grupos'){ state.currentView='misGrupos'; }
+  else { state.currentView='placeholder'; }
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// NOTIF BANNER
+// ══════════════════════════════════════════
+function renderNotif(){
+  var area = document.getElementById('notif-area');
+  if(!state.showNotif || state.currentView!=='misGrupos' || state.activeNav!=='grupos'){
+    area.innerHTML = ''; return;
+  }
+  var inv = state.myPendingInvitation;
+  var dl = Math.max(0,Math.ceil((new Date(inv.expires)-Date.now())/86400000));
+  area.innerHTML = '<div class="notif-banner fade">'
+    + avHtml(inv.groupName,40,8)
+    + '<div class="nb-text"><div class="nb-title">Invitación: '+inv.groupName+'</div>'
+    + '<div class="nb-sub">'+inv.msg+' · Expira en '+dl+' días</div></div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button class="btn-primary" style="font-size:12px;padding:7px 13px" onclick="showView(\'landing\')">Ver invitación</button>'
+    + '<button class="btn-secondary" style="font-size:12px;padding:7px 11px" onclick="dismissNotif()">Ignorar</button>'
+    + '</div></div>';
+}
+function dismissNotif(){ state.showNotif=false; renderAll(); }
+
+// ══════════════════════════════════════════
+// VIEWS ROUTER
+// ══════════════════════════════════════════
+function showView(v){
+  state.currentView = v;
+  if(v==='misGrupos') state.activeNav='grupos';
+  else if(v==='explorar') state.activeNav='grupos';
+  renderAll();
+}
+
+function renderAll(){
+  renderSidebar();
+  renderNotif();
+  renderContent();
+}
+
+function renderContent(){
+  var el = document.getElementById('content');
+  switch(state.currentView){
+    case 'misGrupos':   el.innerHTML = renderMisGrupos(); bindMisGrupos(); break;
+    case 'panel':       el.innerHTML = renderPanel(); bindPanel(); break;
+    case 'explorar':    el.innerHTML = renderExplorar(); bindExplorar(); break;
+    case 'landing':     el.innerHTML = renderLanding(); bindLanding(); break;
+    case 'onboarding':  el.innerHTML = renderOnboarding(); bindOnboarding(); break;
+    default:            el.innerHTML = renderPlaceholder(); break;
+  }
+}
+
+// ══════════════════════════════════════════
+// VIEW: MIS GRUPOS
+// ══════════════════════════════════════════
+function renderMisGrupos(){
+  var cards = state.groups.map(function(g){ return groupCardHtml(g,true); }).join('');
+  return '<div class="view fade">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px">'
+    +'<div><div class="page-title">Grupos</div><div class="page-sub">Conecta tu empresa con tu organización o cadena empresarial.</div></div>'
+    +'<button class="btn-primary" onclick="openCreateGroupModal()">+ Crear Grupo</button>'
+    +'</div>'
+    +'<div class="toolbar">'
+    +'<div class="search-box"><span style="color:#9CA3AF;font-size:14px">🔍</span><input id="mg-search" placeholder="Buscar mis grupos..." oninput="filterMyGroups()" /></div>'
+    +'<span class="count" id="mg-count">Resultados: '+state.groups.length+'</span>'
+    +'</div>'
+    +'<div class="cards-grid" id="mg-grid">'+cards+'</div>'
+    +'<button class="btn-ghost" style="margin-top:18px;font-size:13px;text-decoration:underline" onclick="showView(\'explorar\')">Explorar más grupos →</button>'
+    +'</div>';
+}
+function groupCardHtml(g, myGroup){
+  var roleHtml = '';
+  if(myGroup && g.role==='ADMIN') roleHtml='<span class="badge" style="background:#1E3A5F;color:#fff">Administrador</span>';
+  else if(myGroup && g.role==='MEMBER') roleHtml='<span class="badge" style="background:#E8EDF3;color:#374151">Miembro</span>';
+  var footBtn = myGroup
+    ? '<button class="btn-ghost" onclick="openGroup(\''+g.id+'\')">Ver grupo →</button>'
+    : (state.joinedExplore.has(g.id)
+        ? '<span style="font-size:12px;color:#10B981;font-weight:600">✓ Solicitud enviada</span>'
+        : '<button class="btn-primary" style="font-size:12px;padding:6px 13px" onclick="requestJoin(\''+g.id+'\',\''+g.name+'\')">Solicitar unirme</button>');
+  return '<div class="group-card">'
+    +'<div class="gc-head">'+avHtml(g.name,44,8)
+    +'<div class="gc-info"><div class="gc-name">'+g.name+'</div><div class="gc-count">'+g.count+' '+(g.count===1?'empresa':'empresas')+'</div></div>'
+    +roleHtml+'</div>'
+    +(g.desc?'<div class="gc-desc">'+g.desc+'</div>':'')
+    +'<div class="gc-foot"><span class="gc-vis">'+(g.pub?'🌐 Público':'🔒 Privado')+'</span>'+footBtn+'</div>'
+    +'</div>';
+}
+function bindMisGrupos(){}
+function filterMyGroups(){
+  var q = document.getElementById('mg-search').value.toLowerCase();
+  var filtered = state.groups.filter(function(g){ return g.name.toLowerCase().indexOf(q)>=0; });
+  document.getElementById('mg-grid').innerHTML = filtered.map(function(g){return groupCardHtml(g,true);}).join('');
+  document.getElementById('mg-count').textContent = 'Resultados: '+filtered.length;
+}
+function openGroup(id){
+  var g = state.groups.find(function(x){return x.id===id;});
+  if(!g) return;
+  state.currentGroup = g;
+  state.currentView = 'panel';
+  state.activeTab = 'Miembros';
+  state.memberFilter = 'Todos';
+  state.memberSearch = '';
+  renderAll();
+}
+function requestJoin(id, name){
+  state.joinedExplore.add(id);
+  toast('Solicitud enviada a "'+name+'" ✓');
+  renderContent();
+}
+
+// ══════════════════════════════════════════
+// VIEW: PANEL DEL GRUPO
+// ══════════════════════════════════════════
+function renderPanel(){
+  var g = state.currentGroup;
+  if(!g) return '';
+  var isAdmin = g.role==='ADMIN';
+  var members = state.members[g.slug] || [];
+  var invitations = state.invitations[g.slug] || [];
+
+  var tabBtns = ['Miembros'];
+  if(isAdmin){ tabBtns.push('Invitaciones','Configuración'); }
+
+  var pendingInvCount = invitations.filter(function(i){return i.status==='PENDIENTE';}).length;
+
+  var html = '<div class="view fade">'
+    +'<button class="back-btn" onclick="showView(\'misGrupos\')">← Volver a Mis Grupos</button>'
+    // header
+    +'<div class="group-header">'
+    +'<div class="gh-left">'+avHtml(g.name,52,10)
+    +'<div><div class="gh-name">'+g.name+'</div>'
+    +'<div class="gh-meta">'+g.count+' empresas · '+(g.pub?'Grupo público':'Grupo privado')+'</div>'
+    +(g.desc?'<div class="gh-desc">'+g.desc+'</div>':'')
+    +'</div></div>'
+    +(isAdmin?'<button class="btn-primary" onclick="openInviteModal()">+ Invitar Empresa</button>':'')
+    +'</div>'
+    // tabs
+    +'<div class="tabs">'
+    +tabBtns.map(function(t){
+      var badge = t==='Invitaciones' && pendingInvCount>0
+        ? ' <span class="sb-badge" style="font-size:10px">'+pendingInvCount+'</span>' : '';
+      return '<button class="tab-btn'+(state.activeTab===t?' active':'')+'" onclick="setTab(\''+t+'\')">'+t+badge+'</button>';
+    }).join('')
+    +'</div>';
+
+  // ── tab Miembros
+  if(state.activeTab==='Miembros'){
+    var counts = {
+      Todos: members.filter(function(m){return m.status!=='REMOVIDA';}).length,
+      Administrador: members.filter(function(m){return m.role==='ADMIN'&&m.status==='ACTIVA';}).length,
+      Miembro: members.filter(function(m){return m.role==='MEMBER'&&m.status==='ACTIVA';}).length,
+      Pendiente: members.filter(function(m){return m.status==='PENDIENTE';}).length,
+    };
+    var filtered = members.filter(function(m){
+      if(state.memberFilter==='Administrador') return m.role==='ADMIN'&&m.status==='ACTIVA';
+      if(state.memberFilter==='Miembro') return m.role==='MEMBER'&&m.status==='ACTIVA';
+      if(state.memberFilter==='Pendiente') return m.status==='PENDIENTE';
+      return m.status!=='REMOVIDA';
+    }).filter(function(m){
+      return !state.memberSearch||m.name.toLowerCase().indexOf(state.memberSearch.toLowerCase())>=0;
+    });
+
+    html += '<div class="toolbar">'
+      +'<div class="filter-tabs">'
+      +['Todos','Administrador','Miembro','Pendiente'].map(function(f){
+        return '<button class="ftab'+(state.memberFilter===f?' active':'')+'" onclick="setMemberFilter(\''+f+'\')">'
+          +f+' ('+counts[f]+')</button>';
+      }).join('')
+      +'</div>'
+      +'<div class="search-box" style="max-width:240px"><span style="color:#9CA3AF;font-size:13px">🔍</span>'
+      +'<input id="mem-search" placeholder="Buscar empresa..." value="'+state.memberSearch+'" oninput="setMemberSearch(this.value)"/></div>'
+      +'<button class="btn-outline" onclick="toast(\'Lista actualizada ✓\')">↻ Actualizar</button>'
+      +'</div>'
+      +'<p style="font-size:12px;color:#9CA3AF;margin-bottom:12px">Resultados: '+filtered.length+'</p>'
+      +'<div class="cards-grid">'
+      +filtered.map(function(m){
+        var dot = m.status==='ACTIVA'?'#10B981':m.status==='PENDIENTE'?'#F59E0B':'#EF4444';
+        var roleLabel = m.role==='ADMIN'?'Administrador':'Miembro';
+        var roleBg = m.role==='ADMIN'?'#1E3A5F':'#E8EDF3';
+        var roleColor = m.role==='ADMIN'?'#fff':'#374151';
+        var actions = '';
+        if(isAdmin && m.status==='ACTIVA'){
+          var toggleLabel = m.role==='ADMIN'?'↓ Miembro':'↑ Admin';
+          actions = '<button class="btn-ghost" style="font-size:11px;white-space:nowrap" onclick="toggleRole(\''+g.slug+'\',\''+m.id+'\')">'+toggleLabel+'</button>';
+        }
+        if(isAdmin && m.status==='PENDIENTE'){
+          actions = '<div style="display:flex;flex-direction:column;gap:4px">'
+            +'<button style="background:#10B981;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer" onclick="approveMember(\''+g.slug+'\',\''+m.id+'\',\''+m.name+'\')">Aprobar</button>'
+            +'<button style="background:#FEF2F2;color:#DC2626;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer" onclick="rejectMember(\''+g.slug+'\',\''+m.id+'\')">Rechazar</button>'
+            +'</div>';
+        }
+        return '<div class="member-card">'
+          +'<div class="mc-av-wrap">'+avHtml(m.name,42,'50%')
+          +'<span class="mc-dot" style="background:'+dot+'"></span></div>'
+          +'<div class="mc-info"><div class="mc-name">'+m.name+'</div>'
+          +(m.city?'<div class="mc-city">'+m.city+'</div>':'')
+          +'<span class="badge" style="background:'+roleBg+';color:'+roleColor+';margin-top:3px;display:inline-block">'+roleLabel+'</span></div>'
+          +actions+'</div>';
+      }).join('')
+      +(filtered.length===0?'<p style="color:#9CA3AF;font-size:14px;grid-column:1/-1">No hay empresas en esta categoría.</p>':'')
+      +'</div>';
+  }
+
+  // ── tab Invitaciones
+  if(state.activeTab==='Invitaciones' && isAdmin){
+    var pending = invitations.filter(function(i){return i.status==='PENDIENTE';});
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+      +'<span style="font-size:15px;font-weight:700;color:#111827">Invitaciones Activas</span>'
+      +'<button class="btn-primary" style="font-size:12px;padding:8px 13px" onclick="openInviteModal()">+ Nueva</button>'
+      +'</div>';
+    if(pending.length===0){
+      html += '<p style="color:#9CA3AF;font-size:14px">No hay invitaciones pendientes.</p>';
+    } else {
+      html += pending.map(function(inv){
+        return '<div class="inv-row"><div>'
+          +'<div class="inv-target">'+inv.email+'</div>'
+          +'<div class="inv-meta">Código: <strong>'+inv.code+'</strong> · Expira: '+inv.expires+' · Reenvíos: '+inv.resends+'/5</div>'
+          +'</div><div style="display:flex;gap:8px">'
+          +'<button class="btn-outline" onclick="resendInv(\''+inv.id+'\',\''+g.slug+'\')">Reenviar</button>'
+          +'<button style="background:none;border:none;font-size:12px;color:#EF4444;cursor:pointer;padding:5px" onclick="cancelInv(\''+inv.id+'\',\''+g.slug+'\')">Cancelar</button>'
+          +'</div></div>';
+      }).join('');
+    }
+  }
+
+  // ── tab Configuración
+  if(state.activeTab==='Configuración' && isAdmin){
+    html += '<div style="padding:8px 0;display:flex;flex-direction:column;gap:16px">'
+      +'<p style="color:#6B7280;font-size:14px">Configuración del grupo <strong>'+g.name+'</strong>.</p>'
+      +'<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px">'
+      +'<div><div style="font-weight:600;color:#991B1B;font-size:14px">Disolver Grupo</div>'
+      +'<div style="font-size:13px;color:#9CA3AF;margin-top:3px">Todas las empresas serán desvinculadas.</div></div>'
+      +'<button class="btn-danger" onclick="toast(\'⚠️ Disponible en producción\')">Disolver</button>'
+      +'</div></div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+function bindPanel(){}
+function setTab(t){ state.activeTab=t; renderContent(); }
+function setMemberFilter(f){ state.memberFilter=f; renderContent(); }
+function setMemberSearch(v){ state.memberSearch=v; renderContent(); }
+function toggleRole(slug, mid){
+  var m = state.members[slug].find(function(x){return x.id===mid;});
+  if(!m) return;
+  m.role = m.role==='ADMIN'?'MEMBER':'ADMIN';
+  toast('Rol actualizado ✓');
+  renderContent();
+}
+function approveMember(slug, mid, name){
+  var m = state.members[slug].find(function(x){return x.id===mid;});
+  if(!m) return;
+  m.status='ACTIVA';
+  state.currentGroup.count++;
+  toast(name+' aprobado ✓');
+  renderContent();
+}
+function rejectMember(slug, mid){
+  state.members[slug] = state.members[slug].filter(function(x){return x.id!==mid;});
+  toast('Solicitud rechazada');
+  renderContent();
+}
+function resendInv(iid, slug){
+  var inv = state.invitations[slug].find(function(x){return x.id===iid;});
+  if(inv){ inv.resends++; toast('Invitación reenviada ✓'); renderContent(); }
+}
+function cancelInv(iid, slug){
+  state.invitations[slug] = state.invitations[slug].filter(function(x){return x.id!==iid;});
+  toast('Invitación cancelada');
+  renderContent();
+}
+
+// ══════════════════════════════════════════
+// VIEW: EXPLORAR GRUPOS
+// ══════════════════════════════════════════
+function renderExplorar(){
+  var cards = state.exploreGroups.map(function(g){ return groupCardHtml(g,false); }).join('');
+  return '<div class="view fade">'
+    +'<div class="page-title">Explorar Grupos</div>'
+    +'<div class="page-sub" style="margin-bottom:18px">Encuentra la organización o cadena empresarial a la que perteneces.</div>'
+    +'<div class="search-box" style="max-width:100%;margin-bottom:14px">'
+    +'<span style="color:#9CA3AF;font-size:16px">🔍</span>'
+    +'<input id="exp-search" placeholder="Buscar por nombre de grupo, cadena o marca..." oninput="filterExplore()" style="flex:1;border:none;background:none;outline:none;font-size:14px;color:#111827"/>'
+    +'</div>'
+    +'<p class="count" id="exp-count" style="margin-bottom:13px">Resultados: '+state.exploreGroups.length+'</p>'
+    +'<div class="cards-grid" id="exp-grid">'+cards+'</div>'
+    +'</div>';
+}
+function bindExplorar(){}
+function filterExplore(){
+  var q = document.getElementById('exp-search').value.toLowerCase();
+  var filtered = state.exploreGroups.filter(function(g){return g.name.toLowerCase().indexOf(q)>=0;});
+  document.getElementById('exp-grid').innerHTML = filtered.map(function(g){return groupCardHtml(g,false);}).join('');
+  document.getElementById('exp-count').textContent = 'Resultados: '+filtered.length;
+}
+
+// ══════════════════════════════════════════
+// VIEW: LANDING INVITACIÓN
+// ══════════════════════════════════════════
+function renderLanding(){
+  var inv = state.myPendingInvitation;
+  var dl = Math.max(0,Math.ceil((new Date(inv.expires)-Date.now())/86400000));
+
+  if(state.landingStep==='done_accept') return '<div class="landing-wrap fade">'
+    +'<div class="landing-logo">TURVEX</div>'
+    +'<div style="font-size:52px;margin-top:20px">✅</div>'
+    +'<h2 style="font-size:22px;font-weight:700;color:#111827">¡Te has unido al grupo!</h2>'
+    +'<p style="font-size:14px;color:#6B7280;text-align:center">Ahora formas parte de <strong>'+inv.groupName+'</strong>.<br/>Tu empresa permanece completamente autónoma.</p>'
+    +'<button class="btn-primary" onclick="state.landingStep=\'view\';showView(\'misGrupos\')">Ver Mis Grupos</button>'
+    +'</div>';
+
+  if(state.landingStep==='done_reject') return '<div class="landing-wrap fade">'
+    +'<div class="landing-logo">TURVEX</div>'
+    +'<div style="font-size:52px;margin-top:20px">👋</div>'
+    +'<h2 style="font-size:22px;font-weight:700;color:#111827">Invitación rechazada</h2>'
+    +'<p style="font-size:14px;color:#6B7280;text-align:center">Hemos notificado al administrador del grupo.</p>'
+    +'<button class="btn-secondary" onclick="state.landingStep=\'view\';showView(\'misGrupos\')">Volver</button>'
+    +'</div>';
+
+  var bodyHtml = state.landingStep==='view'
+    ? '<div style="display:flex;gap:10px;justify-content:flex-end">'
+      +'<button class="btn-secondary" onclick="setLandingStep(\'rejecting\')">Rechazar</button>'
+      +'<button class="btn-primary" onclick="acceptInvitation()">Aceptar Invitación</button>'
+      +'</div>'
+    : '<div style="display:flex;flex-direction:column;gap:8px">'
+      +'<label style="font-size:13px;font-weight:600;color:#374151">¿Por qué rechazas? (opcional)</label>'
+      +'<textarea id="reject-reason" style="width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:8px;font-size:13px;resize:none" rows="2" placeholder="No pertenecemos a este grupo..."></textarea>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+      +'<button style="background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:13px;text-decoration:underline" onclick="setLandingStep(\'view\')">Cancelar</button>'
+      +'<button style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer" onclick="rejectInvitation()">Confirmar rechazo</button>'
+      +'</div></div>';
+
+  return '<div class="landing-wrap fade">'
+    +'<div class="landing-logo">TURVEX</div>'
+    +'<div style="font-size:12px;color:#9CA3AF">Conecta. Cotiza. Entrega.</div>'
+    +'<div class="landing-card">'
+    +'<div style="display:flex;align-items:center;gap:12px">'+avHtml(inv.groupName,46,10)
+    +'<div><div style="font-size:15px;font-weight:700;color:#111827">'+inv.groupName+'</div>'
+    +'<div style="font-size:12px;color:#6B7280">Invitado por '+inv.invitedBy+'</div></div></div>'
+    +'<h2 style="font-size:20px;font-weight:700;color:#111827">Invitación de grupo</h2>'
+    +'<p style="font-size:14px;color:#374151;font-style:italic">"'+inv.msg+'"</p>'
+    +'<p style="font-size:12px;color:#F59E0B;font-weight:600">Esta invitación expira en '+dl+' días.</p>'
+    +'<ul style="margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;color:#374151">'
+    +'<li>✓ Seguirás siendo autónomo</li>'
+    +'<li>✓ Solo compartirás lo que decidas</li>'
+    +'<li>✓ Puedes salir en cualquier momento</li>'
+    +'</ul>'
+    +bodyHtml
+    +'</div>'
+    +'<p style="font-size:13px;color:#9CA3AF">¿No tienes cuenta? <a href="#" style="color:#4F46E5;text-decoration:none;font-weight:600">Regístrate gratis</a></p>'
+    +'</div>';
+}
+function bindLanding(){}
+function setLandingStep(s){ state.landingStep=s; renderContent(); }
+function acceptInvitation(){
+  state.landingStep='done_accept';
+  state.showNotif=false;
+  toast('¡Bienvenido a '+state.myPendingInvitation.groupName+'! ✓');
+  renderContent();
+}
+function rejectInvitation(){ state.landingStep='done_reject'; renderContent(); }
+
+// ══════════════════════════════════════════
+// VIEW: ONBOARDING (Paso 3)
+// ══════════════════════════════════════════
+function renderOnboarding(){
+  var sel = state.onboardingGroupSelected;
+  var inputVal = sel ? sel.name : state.onboardingQuery;
+  var inputDisabled = sel ? 'disabled' : '';
+  var checkmark = sel ? '<span style="color:#10B981;font-weight:700;font-size:15px">✓</span><button onclick="clearOnboardingGroup()" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:13px">✕</button>' : '';
+  var fields = [
+    ['nombre','NOMBRE COMERCIAL','EventRed','text'],
+    ['rnc','RNC / CÉDULA','00114435175','text'],
+    ['tel','TELÉFONO EMPRESARIAL','8293054023','tel'],
+    ['correo','CORREO DE CONTACTO','jhonny.rodriguez@hotmail.es','email'],
+  ];
+
+  // Sugerencia automática
+  var nom = (document.getElementById && document.getElementById('ob-nombre') && document.getElementById('ob-nombre').value) || '';
+  var allGroups = state.groups.concat(state.exploreGroups);
+  var suggestGroup = null;
+  if(nom.length>=3 && !sel){
+    var words = nom.toLowerCase().split(' ').filter(function(w){return w.length>3;});
+    for(var i=0;i<allGroups.length;i++){
+      if(words.some(function(w){return allGroups[i].name.toLowerCase().indexOf(w)>=0;})){
+        suggestGroup = allGroups[i]; break;
+      }
+    }
+  }
+
+  var suggestHtml = '';
+  if(suggestGroup && !sel){
+    suggestHtml = '<div class="suggest-banner">'
+      +'<span>💡</span>'
+      +'<span class="sb-text">¿Eres parte del grupo <strong>"'+suggestGroup.name+'"</strong>?</span>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button style="background:#4F46E5;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer" onclick="selectOnboardingGroup(\''+suggestGroup.id+'\',\''+suggestGroup.name.replace(/'/g,"\\'")+'\')" >Sí, unirme</button>'
+      +'<button style="background:none;color:#6B7280;border:1px solid #D1D5DB;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer" onclick="clearSuggest()">No</button>'
+      +'</div></div>';
+  }
+
+  var ddItems = state.onboardingQuery.length>=2
+    ? allGroups.filter(function(g){return g.name.toLowerCase().indexOf(state.onboardingQuery.toLowerCase())>=0;}).slice(0,5).map(function(g){
+        return '<button class="dd-item" onmousedown="selectOnboardingGroup(\''+g.id+'\',\''+g.name.replace(/'/g,"\\'")+'\')"><span class="dd-name">'+g.name+'</span><span class="dd-sub">'+g.count+' empresas</span></button>';
+      }).join('')
+    : '';
+
+  var dropdownHtml = (!sel && state.onboardingQuery.length>=2)
+    ? '<div class="dropdown">'+(ddItems||'<div style="padding:10px 14px;font-size:13px;color:#9CA3AF">No encontramos ese grupo. Puedes crearlo desde tu cuenta.</div>')+'</div>'
+    : '';
+
+  var noteHtml = sel ? '<p style="font-size:12px;color:#6B7280;background:#F0FDF4;border-radius:6px;padding:6px 10px;margin-top:6px">Al completar el registro quedarás vinculado a <strong>'+sel.name+'</strong>. Tu cuenta permanece independiente.</p>' : '';
+
+  return '<div class="onboarding-wrap fade">'
+    +'<div class="step-label">PASO 3 DE 5</div>'
+    +'<div class="page-title" style="font-size:22px">Datos de la empresa</div>'
+    +'<div class="page-sub" style="margin-bottom:22px">Información básica para tu perfil en Turvex.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:15px">'
+    +fields.map(function(f){
+      return '<div class="field">'
+        +'<label style="text-transform:uppercase;font-size:11px;letter-spacing:.5px">'+f[1]+'</label>'
+        +'<input id="ob-'+f[0]+'" type="'+f[3]+'" placeholder="'+f[2]+'" '+(f[0]==='nombre'?'oninput="onboardingNameChange(this.value)"':'')+'>'
+        +'</div>';
+    }).join('')
+    // Separador opcional
+    +'<div style="border-top:1px dashed #E5E7EB;padding-top:14px">'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+    +'<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.8px;font-weight:600">Opcional</span>'
+    +'<div style="flex:1;height:1px;background:#E5E7EB"></div></div>'
+    +'<label class="field" style="font-size:13px;font-weight:600;color:#374151">¿Tu empresa forma parte de una organización mayor?'
+    +'<span style="font-weight:400;color:#9CA3AF"> — puedes hacerlo después</span></label>'
+    +suggestHtml
+    +'<div style="position:relative;margin-top:7px">'
+    +'<div style="display:flex;align-items:center;border:1px solid #D1D5DB;border-radius:8px;padding:9px 12px;background:#F9FAFB;gap:8px">'
+    +'<span style="color:#9CA3AF;font-size:13px">🔍</span>'
+    +'<input id="ob-group-search" style="flex:1;border:none;background:none;outline:none;font-size:14px;color:#111827" '
+    +'placeholder="Buscar grupo: ej. Royalton, Barceló..." value="'+inputVal+'" '+inputDisabled+' '
+    +'oninput="onboardingGroupSearch(this.value)" onfocus="onboardingGroupFocus()">'
+    +checkmark
+    +'</div>'
+    +dropdownHtml
+    +'</div>'
+    +noteHtml
+    +'</div>'
+    +'<button class="btn-primary" style="padding:12px;font-size:14px;margin-top:6px" onclick="toast(\'✓ Registro completado. Redirigiendo al dashboard...\')">Siguiente →</button>'
+    +'</div></div>';
+}
+function bindOnboarding(){}
+function onboardingNameChange(v){
+  state.onboardingLastName = v;
+  renderContent();
+  // Restore value
+  var el = document.getElementById('ob-nombre');
+  if(el){ el.value=v; el.focus(); el.selectionStart=el.selectionEnd=v.length; }
+}
+function onboardingGroupSearch(v){
+  state.onboardingQuery = v;
+  state.onboardingGroupSelected = null;
+  renderContent();
+  var el = document.getElementById('ob-group-search');
+  if(el){ el.focus(); el.value=v; el.selectionStart=el.selectionEnd=v.length; }
+}
+function onboardingGroupFocus(){
+  if(state.onboardingQuery.length>=2) renderContent();
+}
+function selectOnboardingGroup(id, name){
+  var allGroups = state.groups.concat(state.exploreGroups);
+  var g = allGroups.find(function(x){return x.id===id;}) || {id:id,name:name,count:0};
+  state.onboardingGroupSelected = g;
+  state.onboardingQuery = name;
+  toast('Vinculado a "'+name+'" ✓');
+  renderContent();
+}
+function clearOnboardingGroup(){
+  state.onboardingGroupSelected = null;
+  state.onboardingQuery = '';
+  renderContent();
+}
+function clearSuggest(){
+  state.onboardingLastName = '__cleared__';
+  renderContent();
+}
+
+// ══════════════════════════════════════════
+// VIEW: PLACEHOLDER
+// ══════════════════════════════════════════
+function renderPlaceholder(){
+  return '<div class="placeholder fade">'
+    +'<div class="icon">🚧</div>'
+    +'<p>Esta sección pertenece al sistema Turvex existente.</p>'
+    +'<p style="font-size:13px">Ve a <button class="btn-ghost" style="font-size:13px;text-decoration:underline" onclick="navClick(\'grupos\')">Grupos</button> para ver el módulo en acción.</p>'
+    +'</div>';
+}
+
+// ══════════════════════════════════════════
+// MODALES
+// ══════════════════════════════════════════
+
+// ── CREAR GRUPO ──
+function openCreateGroupModal(){
+  openModal('<div class="modal" style="max-width:470px">'
+    +'<div class="modal-head"><h3>Crear Grupo Organizacional</h3><button class="close" onclick="closeModal()">✕</button></div>'
+    +'<div class="modal-body">'
+    +'<div class="field"><label>Nombre del grupo <span style="color:#EF4444">*</span></label>'
+    +'<input id="cg-name" placeholder="ej. Royalton Luxury Resorts" maxlength="255">'
+    +'<span class="hint">Este será el nombre visible en la red.</span></div>'
+    +'<div class="field"><label>Descripción (opcional)</label>'
+    +'<textarea id="cg-desc" style="height:68px;resize:vertical" placeholder="Cadena hotelera con presencia en RD..."></textarea></div>'
+    +'<div class="field"><label>Sitio web (opcional)</label>'
+    +'<input id="cg-web" type="url" placeholder="https://tusitio.com"></div>'
+    +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#374151">'
+    +'<input type="checkbox" id="cg-pub" checked> Grupo público (visible en la Red Empresarial)</label>'
+    +'<button class="btn-primary" style="padding:11px;font-size:14px;margin-top:4px" onclick="submitCreateGroup()">Crear Grupo</button>'
+    +'</div></div>');
+}
+function submitCreateGroup(){
+  var name = document.getElementById('cg-name').value.trim();
+  if(!name){ toast('El nombre es requerido'); return; }
+  var desc = document.getElementById('cg-desc').value.trim();
+  var web = document.getElementById('cg-web').value.trim();
+  var pub = document.getElementById('cg-pub').checked;
+  var newG = {id:'g'+Date.now(),name:name,slug:name.toLowerCase().replace(/\s+/g,'-'),desc:desc||null,pub:pub,count:1,role:'ADMIN'};
+  state.groups.unshift(newG);
+  state.members[newG.slug] = [{id:'mx1',cid:'cX',name:'Tu empresa (tú)',city:'',role:'ADMIN',status:'ACTIVA'}];
+  state.invitations[newG.slug] = [];
+  closeModal();
+  state.currentGroup = newG;
+  state.currentView = 'panel';
+  state.activeTab = 'Miembros';
+  toast('Grupo "'+name+'" creado ✓');
+  renderAll();
+}
+
+// ── INVITAR EMPRESA ──
+function openInviteModal(){
+  state.inviteMode = 'search';
+  renderInviteModal();
+}
+function renderInviteModal(){
+  var mode = state.inviteMode;
+  var searchTab = mode==='search'?' active':'', emailTab = mode==='email'?' active':'';
+  var FAKE = ['Hotel Royalton Puerto Plata','Royalton Splash Varadero','Hotel Royalton Grenada'];
+  var invQuery = (document.getElementById && document.getElementById('inv-search') && document.getElementById('inv-search').value) || '';
+  var results = invQuery.length>=2 ? FAKE.filter(function(c){return c.toLowerCase().indexOf(invQuery.toLowerCase())>=0;}) : [];
+
+  var bodyHtml = mode==='search'
+    ? '<input id="inv-search" placeholder="Buscar por nombre o correo..." style="width:100%;padding:9px 11px;border:1px solid #D1D5DB;border-radius:8px;font-size:14px;outline:none" oninput="reRenderInvite()" autofocus>'
+      + (invQuery.length>=2 && results.length===0 ? '<p style="font-size:13px;color:#9CA3AF">No encontramos esa empresa. <button style="background:none;border:none;color:#4F46E5;cursor:pointer;font-size:13px;text-decoration:underline" onclick="state.inviteMode=\'email\';renderInviteModal()">¿Invitar por correo?</button></p>' : '')
+      + (results.length>0 ? '<div class="results-list">'+results.map(function(c){
+          return '<div class="result-row"><div><div class="rr-name">'+c+'</div></div>'
+            +'<button class="btn-primary" style="font-size:12px;padding:6px 13px" onclick="inviteCompanyDirect(\''+c+'\')">Invitar</button></div>';
+        }).join('')+'</div>' : '')
+    : '<div class="field"><label>Correo</label><input id="inv-email" type="email" placeholder="correo@empresa.com" autofocus></div>'
+      +'<div class="field"><label>Mensaje (opcional)</label><textarea id="inv-msg" style="height:66px;resize:vertical" placeholder="Te invitamos a unirte al grupo..."></textarea></div>'
+      +'<button class="btn-primary" style="padding:11px;font-size:14px" onclick="inviteByEmail()">Enviar Invitación</button>';
+
+  document.getElementById('modal-area').innerHTML = '<div class="overlay" onclick="if(event.target===this)closeModal()">'
+    +'<div class="modal" style="max-width:450px">'
+    +'<div class="modal-head"><h3>Invitar al grupo</h3><button class="close" onclick="closeModal()">✕</button></div>'
+    +'<div class="modal-tabs">'
+    +'<button class="mtab'+searchTab+'" onclick="state.inviteMode=\'search\';renderInviteModal()">Buscar en Turvex</button>'
+    +'<button class="mtab'+emailTab+'" onclick="state.inviteMode=\'email\';renderInviteModal()">Por correo</button>'
+    +'</div>'
+    +'<div class="modal-body">'+bodyHtml+'</div>'
+    +'</div></div>';
+
+  if(invQuery && document.getElementById('inv-search')){
+    var el=document.getElementById('inv-search'); el.value=invQuery; el.focus(); el.selectionStart=el.selectionEnd=invQuery.length;
+  }
+}
+function reRenderInvite(){ renderInviteModal(); }
+function inviteCompanyDirect(name){
+  var slug = state.currentGroup.slug;
+  var email = name.toLowerCase().replace(/\s+/g,'.')+'.turvex@demo.com';
+  addNewInvitation(slug, email);
+}
+function inviteByEmail(){
+  var email = document.getElementById('inv-email') && document.getElementById('inv-email').value;
+  if(!email){ toast('Ingresa un correo válido'); return; }
+  var slug = state.currentGroup.slug;
+  addNewInvitation(slug, email);
+}
+function addNewInvitation(slug, email){
+  if(!state.invitations[slug]) state.invitations[slug]=[];
+  var exp = new Date(Date.now()+30*86400000);
+  state.invitations[slug].push({id:'i'+Date.now(),email:email,code:'GRP-'+Math.floor(1000+Math.random()*9000),status:'PENDIENTE',expires:exp.toISOString().slice(0,10),resends:0});
+  closeModal();
+  state.activeTab='Invitaciones';
+  toast('Invitación enviada a '+email+' ✓');
+  renderContent();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>
